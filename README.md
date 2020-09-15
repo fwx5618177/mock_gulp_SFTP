@@ -1,12 +1,10 @@
-# [gulp](http://gulpjs.com)-sftp-up4 [![Build Status](https://travis-ci.org/gtg092x/gulp-sftp.svg?branch=master)](https://travis-ci.org/gtg092x/gulp-sftp)
-
-This is fork of original gulp-sftp with little change which let us to use it with gulp 4.0 version
+This is fork of original gulp-sftp with little change which let us to use it with gulp 5.0 version
 It solve error: "TypeError: file.pipe is not a function".
 This solution is by Dan503 https://github.com/gtg092x/gulp-sftp/issues/78#issuecomment-356475605
-And what I did - is just public it in npm with name "gulp-sftp-up4"
+And what I did - is just public it in npm with name "gulp-sftp-up5"
 
 Original README text below:
-(Just use new name gulp-sftp-up4)
+(Just use new name gulp-sftp-up5)
 
 
 > Upload files via SSH
@@ -17,8 +15,11 @@ Useful for uploading and deploying things via sftp. Right now this plugin just u
 
 ## Install
 
-```bash
-$ npm install --save-dev gulp-sftp-up4
+```
+npm install --save-dev gulp-sftp-up5
+
+yarn add gulp-sftp-up5 -D
+
 ```
 
 
@@ -26,7 +27,7 @@ $ npm install --save-dev gulp-sftp-up4
 
 ```js
 var gulp = require('gulp');
-var sftp = require('gulp-sftp-up4');
+var sftp = require('gulp-sftp-up5');
 
 gulp.task('default', function () {
 	return gulp.src('src/*')
