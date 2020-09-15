@@ -1,0 +1,51 @@
+{
+  "name": "gulp-sftp-up5",
+  "version": "0.0.1",
+  "description": "Upload files via SSH and working with gulp 5.0. Fork of original gulp-sftp-up5",
+  "license": "MIT",
+  "repository": "Robespeler/gulp-sftp-up5",
+  "homepage": "https://github.com/Robespeler/gulp-sftp-up5",
+  "author": {
+    "name": "TimeLord",
+    "email": "caohuiboss@qq.com.com",
+    "url": "https://gitee.com/caohuiboss"
+  },
+  "contributors": [
+    "Benjamin P. Jung <headcr4sh@gmail.com>",
+    "Carson Britt <carson28@gmail.com> <carson.britt@a0002457.local>",
+    "Matthew Drake <mdrake@mediadrake.com>",
+    "Valan Brown <github@valanbrown.com>",
+    "Sorin Guga <sorin.guga@gmail.com>",
+    "Dan503 https://github.com/Dan503",
+    "Robespeler"
+  ],
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {},
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "gulpplugin",
+    "sftp",
+    "file",
+    "files",
+    "transfer",
+    "protocol",
+    "server",
+    "client",
+    "upload",
+    "deploy",
+    "deployment"
+  ],
+  "dependencies": {
+    "async": "~0.9.0",
+    "gulp-util": "~3.0.0",
+    "object-assign": "~0.3.1",
+    "parents": "~1.0.0",
+    "ssh2": "~0.6.1",
+    "through2": "~0.4.2"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,17 @@
+node_modules
+fixture
+.idea
+.project
+.settings
+=======
+# Logs
+logs
+*.log
+
+.DS_Store
+test.*
+test
+out
+gulpfile.js
+.ftppass
+.editorconfig
