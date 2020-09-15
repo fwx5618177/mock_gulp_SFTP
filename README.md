@@ -1,3 +1,5 @@
+# gulp-sftp-up5
+
 This is fork of original gulp-sftp with little change which let us to use it with gulp 5.0 version
 It solve error: "TypeError: file.pipe is not a function".
 This solution is by Dan503 https://github.com/gtg092x/gulp-sftp/issues/78#issuecomment-356475605
