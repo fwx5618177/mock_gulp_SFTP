@@ -3,7 +3,7 @@
 ## 一个简单用于linux/win的sftp程序，在（gulp-sftp-up4）的基础上进行改进，它可以实现当你打包以后自动将你的打包文件发送到远端服务器，不用借助于gitlab和jenkins,但需要package.json的配合
 
 
-[![NPM](https://www.npmjs.com/package/gulp-sftp-up5)]
+[NPM](https://www.npmjs.com/package/gulp-sftp-up5)
 
 ## 安装 
 
