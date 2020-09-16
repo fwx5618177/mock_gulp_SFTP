@@ -1,0 +1,6 @@
+# build/*.js
+# src/assets
+# jsconfig.json
+# node_modules
+# public
+# dist

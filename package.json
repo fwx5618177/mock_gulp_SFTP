@@ -1,6 +1,6 @@
 {
   "name": "gulp-sftp-up5",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Upload files via SSH and working with gulp 5.0. Fork of original gulp-sftp-up5",
   "license": "MIT",
   "repository": "https://gitee.com/caohuiboss/gulp-sftp-up5",

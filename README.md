@@ -1,48 +1,56 @@
 # gulp-sftp-up5
 
-This is fork of original gulp-sftp with little change which let us to use it with gulp 5.0 version
-It solve error: "TypeError: file.pipe is not a function".
-This solution is by Dan503 https://github.com/gtg092x/gulp-sftp/issues/78#issuecomment-356475605
-And what I did - is just public it in npm with name "gulp-sftp-up5"
-
-Original README text below:
-(Just use new name gulp-sftp-up5)
+## 一个简单用于linux/win的sftp程序，在（gulp-sftp-up4）的基础上进行改进，它可以实现当你打包以后自动将你的打包文件发送到远端服务器，不用借助于gitlab和jenkins,但需要package.json的配合
 
 
-> Upload files via SSH
+[![NPM][(https://www.npmjs.com/package/gulp-sftp-up5)]
 
-Useful for uploading and deploying things via sftp. Right now this plugin just uploads everything. Caching and hash comparison are two TODO items.  
-
-[![NPM](https://nodei.co/npm/gulp-sftp.png?downloads=true&stars=true)](https://nodei.co/npm/gulp-sftp/)
-
-## Install
+## 安装 
 
 ```
 npm install --save-dev gulp-sftp-up5
-
 yarn add gulp-sftp-up5 -D
-
 ```
 
 
-## Usage
+## 提示
+
+### 如果你是vue或者react，你可以配置的package.json的执行脚本，当你运行  npm run build:test  的以后你可以接着运行  npm run deploy，可以实现简单的前端自动化部署
+
+```
+"scripts": {
+    "dev": "vue-cli-service serve --mode dev",
+    "build:test": "vue-cli-service build --mode build_test && npm run deploy",
+    "build:prod": "vue-cli-service build --mode build_prod",
+    "deploy": "node ./deploy.js"
+  }
+```
 
 ```js
-var gulp = require('gulp');
-var sftp = require('gulp-sftp-up5');
+// deploy.js
 
-gulp.task('default', function () {
-	return gulp.src('src/*')
-		.pipe(sftp({
-			host: 'website.com',
-			user: 'johndoe',
-			pass: '1234'
-		}));
-});
+/**
+ * 部署之前请检查好要部署的路径
+ * 仅限测试环境自动部署
+ */
+const gulp = require('gulp') //需安装 gulp
+const sftp = require('gulp-sftp-up5')
+const CONFIG = 'dist' // 当前打包后生成的文件夹
+const sftpConfig = {
+  remotePath: '/service/app/web', // 部署到服务器的路径
+  host: '192.168.0.1', // 服务器地址
+  user: 'root', // 帐号
+  pass: '1433223', // 密码
+  port: 22, // 端口
+  removeCurrentFolderFiles: true // 删除远端 remotePath 所对应的web目录底下所有文件再将 文件发布过去
+}
+
+gulp.src('./' + CONFIG.outputDir + '/**').pipe(sftp(sftpConfig))
 ```
 
 
-## API
+
+## API 保留了之前gulp-sftp-up4所有的API，添加了远端文件删除的属性
 
 ### sftp(options)
 
@@ -56,12 +64,12 @@ Type: `String`
 Type: `Number`  
 Default: `22`
 
-#### options.user
+#### options.user / username
 
 Type: `String`  
 Default: `'anonymous'`
 
-#### options.pass
+#### options.pass / password
 
 Type: `String`  
 Default: `null`
@@ -154,7 +162,7 @@ Default: `false`
 **这是我加的参数，用于删除文件夹（remotePath）远端对应的文件夹底下的所有文件，规避了历史文件的冗余，有一定的风险，请务确保路径的正确**
 
 
-##Authentication
+## Authentication
 
 For better security, save authentication data in a json formatted file named `.ftppass` (or to whatever value you set options.authFile to). **Be sure to add this file to .gitignore**. You do not typically want auth information stored in version control.
 
@@ -196,7 +204,7 @@ gulp.task('default', function () {
 ```
 
 
-##Work with [pem](https://github.com/andris9/pem)
+## Work with [pem](https://github.com/andris9/pem)
 
 To use [pem](https://github.com/andris9/pem) create private keys and certificates for access your server: 
 
@@ -215,22 +223,4 @@ gulp.task('deploy:test', function () {
     });
 });
 ```
-
-##Known Issues
-
-###SFTP error or directory exists: Error: No such file /remote/sub/folder
-
-Version 0.1.2 has an issue for Windows clients when it comes to resolving remote paths. Please upgrade to 0.1.3.
-
-###Error:: SFTP abrupt closure
-
-~~Some conditions can cause the [ssh2](https://github.com/mscdex/ssh2) connection to abruptly close. The issues that commonly cause this are large files (though they are checked for and are automatically converted to streams) and heavy memory usage.~~
-
-~~To solve problems related to [ssh2](https://github.com/mscdex/ssh2) closures, try to use streams instead of buffers. Do this by passing `{buffer:false}` as an option with `gulp.src`. This isn't always an option, so I would suggest exploring ways to move between streams and buffers. Lars Kappert has a [great article on managing this](https://medium.com/web-code-junk/a2010c13d3d5).~~
-
-Some awesome work via @mscdex addressed this issue. Please make sure you have the latest version or greater of gulp-sftp (0.1.1) and the latest version or greater of ssh2 (0.3.4) and you should not see abrupt disconnects with large files.
-
-## License
-
-[MIT](http://opensource.org/licenses/MIT)
 

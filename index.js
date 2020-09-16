@@ -279,22 +279,16 @@ module.exports = function (options) {
                 });
 
             }, function () {
-
                 var stream = sftp.createWriteStream(finalRemotePath, {//REMOTE PATH
                     flags: 'w',
                     encoding: null,
                     mode: '0666',
                     autoClose: true
                 });
-
                 //var readStream = fs.createReadStream(fileBase+localRelativePath);
-
                 var uploadedBytes = 0;
-
-
                 var highWaterMark = stream.highWaterMark || (16 * 1000);
                 var size = file.stat.size;
-
 
                 // start upload (edit by Dan503 https://github.com/Dan503)
                 if (file.isStream()) {
@@ -302,17 +296,12 @@ module.exports = function (options) {
                 } else if (file.isBuffer()) {
                     stream.end(file.contents);
                 }
-
                 stream.on('drain', function () {
                     uploadedBytes += highWaterMark;
                     var p = Math.round((uploadedBytes / size) * 100);
                     p = Math.min(100, p);
                     gutil.log('gulp-sftp:', finalRemotePath, "uploaded", (uploadedBytes / 1000) + "kb");
                 });
-
-
-
-
                 stream.on('close', function (err) {
 
                     if (err)
@@ -332,9 +321,6 @@ module.exports = function (options) {
 
             });//async.whilst
         });
-
-
-
         this.push(file);
 
     }, function (cb) {
