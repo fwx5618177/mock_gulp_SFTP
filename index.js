@@ -1,22 +1,19 @@
 'use strict';
-var path = require('path');
-var fs = require('fs');
-var gutil = require('gulp-util');
-var util = require('util');
-var through = require('through2');
-var Connection = require('ssh2');
-var async = require('async');
-var parents = require('parents');
-var Stream = require('stream');
-var assign = require('object-assign');
+const path = require('path');
+const fs = require('fs');
+const gutil = require('gulp-util');
+const through = require('through2');
+const Connection = require('ssh2');
+const async = require('async');
+const parents = require('parents');
+const assign = require('object-assign');
 
-var normalizePath = function (path) {
+const normalizePath = function (path) {
     return path.replace(/\\/g, '/');
 };
 
 module.exports = function (options) {
     options = assign({}, options);// credit sindresorhus
-
 
     if (options.host === undefined) {
         throw new gutil.PluginError('gulp-sftp', '`host` required.');
@@ -57,7 +54,6 @@ module.exports = function (options) {
     }
 
     if (key) {
-
         //aliases
         key.contents = key.contents || options.keyContents;
         key.passphrase = key.passphrase || options.passphrase;
@@ -66,7 +62,7 @@ module.exports = function (options) {
         key.location = key.location || ["~/.ssh/id_rsa", "/.ssh/id_rsa", "~/.ssh/id_dsa", "/.ssh/id_dsa"];
 
         //type normalization
-        if (!util.isArray(key.location))
+        if (!Array.isArray(key.location))
             key.location = [key.location];
 
         //resolve all home paths
@@ -88,18 +84,12 @@ module.exports = function (options) {
         } else if (!key.contents) {
             this.emit('error', new gutil.PluginError('gulp-sftp', 'Cannot find RSA key, searched: ' + key.location.join(', ')));
         }
-
-
-
     }
     /*
      * End Key normalization, key should now be of form:
      * {location:Array,passphrase:String,contents:String}
      * or null
      */
-
-
-
 
     var logFiles = options.logFiles === false ? false : true;
 
@@ -111,16 +101,13 @@ module.exports = function (options) {
 
     var mkDirCache = {};
     const removePath = remotePath
-
     var finished = false;
     var sftpCache = null;//sftp connection cache
     var connectionCache = null;//ssh connection cache
 
     var pool = function (remotePath, uploader) { // method to get cache or create connection
-
         if (sftpCache)
             return uploader(sftpCache);
-
         if (options.password) {
             gutil.log('Authenticating with password.');
         } else if (key) {
@@ -130,7 +117,6 @@ module.exports = function (options) {
         var c = new Connection();
         connectionCache = c;
         c.on('ready', function () {
-
             if (options.removeCurrentFolderFiles === true) {
                 c.exec(`rm -rf ${removePath}`, (err, stream) => {
                     if (err) throw err;
@@ -148,15 +134,12 @@ module.exports = function (options) {
             c.sftp(function (err, sftp) {
                 if (err)
                     throw err;
-
-
                 sftp.on('end', function () {
                     gutil.log('SFTP :: SFTP session closed');
                     sftpCache = null;
                     if (!finished)
                         this.emit('error', new gutil.PluginError('gulp-sftp', "SFTP abrupt closure"));
                 });
-
                 sftpCache = sftp;
                 uploader(sftpCache);
             });//c.sftp
@@ -180,10 +163,7 @@ module.exports = function (options) {
             } else {
                 gutil.log('Connection :: closed');
             }
-
         });
-
-
         /*
          * connection options, may be a key
          */
@@ -206,32 +186,21 @@ module.exports = function (options) {
         if (options.timeout) {
             connection_options.readyTimeout = options.timeout;
         }
-
         c.connect(connection_options);
 
-        /*
-         * end connection options
-         */
-
     };
-
     return through.obj(function (file, enc, cb) {
         if (file.isNull()) {
             this.push(file);
             return cb();
         }
-
         // have to create a new connection for each file otherwise they conflict, pulled from sindresorhus
-
         var finalRemotePath = normalizePath(path.join(remotePath, file.relative));
-
         //connection pulled from pool
         pool.call(this, finalRemotePath, function (sftp) {
             /*
              *  Create Directories
              */
-
-
             //get dir name from file path
             var dirname = path.dirname(finalRemotePath);
             //get parents of the target dir
@@ -247,7 +216,6 @@ module.exports = function (options) {
                     return '/' + dir;
                 });
             }
-
             //get filter out dirs that are closer to root than the base remote path
             //also filter out any dirs made during this gulp session
             fileDirs = fileDirs.filter(function (d) { return d.length >= remotePath.length && !mkDirCache[d]; });
@@ -277,7 +245,6 @@ module.exports = function (options) {
                         next();
                     }
                 });
-
             }, function () {
                 var stream = sftp.createWriteStream(finalRemotePath, {//REMOTE PATH
                     flags: 'w',
@@ -313,12 +280,10 @@ module.exports = function (options) {
                                 gutil.colors.green(' => ') +
                                 finalRemotePath);
                         }
-
                         fileCount++;
                     }
                     return cb(err);
                 });
-
             });//async.whilst
         });
         this.push(file);
@@ -334,7 +299,6 @@ module.exports = function (options) {
             sftpCache.end();
         if (connectionCache)
             connectionCache.end();
-
         cb();
     });
 };
