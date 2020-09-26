@@ -6,17 +6,16 @@ const through = require('through2');
 const Connection = require('ssh2');
 const async = require('async');
 const parents = require('parents');
-const assign = require('object-assign');
 
 const normalizePath = function (path) {
     return path.replace(/\\/g, '/');
 };
 
 module.exports = function (options) {
-    options = assign({}, options);// credit sindresorhus
+    options = { ...options };// credit sindresorhus
 
     if (options.host === undefined) {
-        throw new gutil.PluginError('gulp-sftp', '`host` required.');
+        throw new gutil.PluginError('GULP-SFTP', '`host` 必填.');
     }
 
     var fileCount = 0;
@@ -29,7 +28,7 @@ module.exports = function (options) {
     if (options.authKey && fs.existsSync(authFile)) {
         var auth = JSON.parse(fs.readFileSync(authFile, 'utf8'))[options.authKey];
         if (!auth)
-            this.emit('error', new gutil.PluginError('gulp-sftp', 'Could not find authkey in .ftppass'));
+            this.emit('error', new gutil.PluginError('GULP-SFTP', '没有在.ftppass中找到 authkey'));
         if (typeof auth == "string" && auth.indexOf(":") != -1) {
             var authparts = auth.split(":");
             auth = { user: authparts[0], pass: authparts[1] };
@@ -71,18 +70,14 @@ module.exports = function (options) {
             for (var i = 0; i < key.location.length; i++)
                 if (key.location[i].substr(0, 2) === '~/')
                     key.location[i] = path.resolve(home, key.location[i].replace(/^~\//, ""));
-
-
             for (var i = 0, keyPath; keyPath = key.location[i++];) {
-
-
                 if (fs.existsSync(keyPath)) {
                     key.contents = fs.readFileSync(keyPath);
                     break;
                 }
             }
         } else if (!key.contents) {
-            this.emit('error', new gutil.PluginError('gulp-sftp', 'Cannot find RSA key, searched: ' + key.location.join(', ')));
+            this.emit('error', new gutil.PluginError('GULP-SFTP', '没有找到 RSA key, 搜索过: ' + key.location.join(', ')));
         }
     }
     /*
@@ -92,13 +87,11 @@ module.exports = function (options) {
      */
 
     var logFiles = options.logFiles === false ? false : true;
-
     delete options.remotePath;
     delete options.localPath;
     delete options.user;
     delete options.pass;
     delete options.logFiles;
-
     var mkDirCache = {};
     const removePath = remotePath
     var finished = false;
@@ -109,9 +102,9 @@ module.exports = function (options) {
         if (sftpCache)
             return uploader(sftpCache);
         if (options.password) {
-            gutil.log('Authenticating with password.');
+            gutil.log('当前使用的是密码进行身份验证。');
         } else if (key) {
-            gutil.log('Authenticating with private key.');
+            gutil.log('当前使用私钥进行身份验证。');
         }
 
         var c = new Connection();
@@ -120,14 +113,12 @@ module.exports = function (options) {
             if (options.removeCurrentFolderFiles === true) {
                 c.exec(`rm -rf ${removePath}`, (err, stream) => {
                     if (err) throw err;
-                    stream.on('close', (code, signal) => {
-                        // c.end();
-                    }).on('data', (data) => {
+                    stream.on('data', (data) => {
                         gutil.log('STDOUT: ' + data);
                     }).stderr.on('data', (data) => {
                         gutil.log('STDERR: ' + data);
                     });
-                    gutil.log('STDOUT: 远端文件删除成功');
+                    gutil.log('提示: 远端文件删除成功');
                 })
             }
 
@@ -135,33 +126,32 @@ module.exports = function (options) {
                 if (err)
                     throw err;
                 sftp.on('end', function () {
-                    gutil.log('SFTP :: SFTP session closed');
+                    gutil.log('GULP-SFTP :: SFTP 连接关闭');
                     sftpCache = null;
                     if (!finished)
-                        this.emit('error', new gutil.PluginError('gulp-sftp', "SFTP abrupt closure"));
+                        this.emit('error', new gutil.PluginError('GULP-SFTP', "SFTP 突然关闭"));
                 });
                 sftpCache = sftp;
                 uploader(sftpCache);
-            });//c.sftp
-        });//c.on('ready')
+            });
+        });
 
         var self = this;
         c.on('error', function (err) {
-            self.emit('error', new gutil.PluginError('gulp-sftp', err));
-            //return cb(err);
+            self.emit('error', new gutil.PluginError('GULP-SFTP', err));
         });
         c.on('end', function () {
-            gutil.log('Connection :: end');
+            gutil.log('连接 :: 结束');
         });
         c.on('close', function (err) {
             if (!finished) {
-                gutil.log('gulp-sftp', "SFTP abrupt closure");
-                self.emit('error', new gutil.PluginError('gulp-sftp', "SFTP abrupt closure"));
+                gutil.log('GULP-SFTP', "SFTP 突然关闭");
+                self.emit('error', new gutil.PluginError('GULP-SFTP', "SFTP 突然关闭"));
             }
             if (err) {
-                gutil.log('Connection :: close, ', gutil.colors.red('Error: ' + err));
+                gutil.log('连接 :: 关闭, ', gutil.colors.red('Error: ' + err));
             } else {
-                gutil.log('Connection :: closed');
+                gutil.log('连接 :: 关闭');
             }
         });
         /*
@@ -219,7 +209,6 @@ module.exports = function (options) {
             //get filter out dirs that are closer to root than the base remote path
             //also filter out any dirs made during this gulp session
             fileDirs = fileDirs.filter(function (d) { return d.length >= remotePath.length && !mkDirCache[d]; });
-
             //while there are dirs to create, create them
             //https://github.com/caolan/async#whilst - not the most commonly used async control flow
             async.whilst(function () {
@@ -235,9 +224,9 @@ module.exports = function (options) {
                     if (!exist) {
                         sftp.mkdir(d, { mode: '0755' }, function (err) {//REMOTE PATH
                             if (err) {
-                                gutil.log('SFTP Mkdir Error:', gutil.colors.red(err + " " + d));
+                                gutil.log('SFTP 创建目录失败:', gutil.colors.red(err + " " + d));
                             } else {
-                                gutil.log('SFTP Created:', gutil.colors.green(d));
+                                gutil.log('SFTP 创建中:', gutil.colors.green(d));
                             }
                             next();
                         });
@@ -267,15 +256,14 @@ module.exports = function (options) {
                     uploadedBytes += highWaterMark;
                     var p = Math.round((uploadedBytes / size) * 100);
                     p = Math.min(100, p);
-                    gutil.log('gulp-sftp:', finalRemotePath, "uploaded", (uploadedBytes / 1000) + "kb");
+                    gutil.log('GULP-SFTP:', finalRemotePath, "uploaded", (uploadedBytes / 1000) + "kb");
                 });
                 stream.on('close', function (err) {
-
                     if (err)
-                        this.emit('error', new gutil.PluginError('gulp-sftp', err));
+                        this.emit('error', new gutil.PluginError('GULP-SFTP', err));
                     else {
                         if (logFiles) {
-                            gutil.log('gulp-sftp:', gutil.colors.green('Uploaded: ') +
+                            gutil.log(gutil.colors.green('GULP-SFTP:'), gutil.colors.green('已上传: ') +
                                 file.relative +
                                 gutil.colors.green(' => ') +
                                 finalRemotePath);
@@ -284,15 +272,15 @@ module.exports = function (options) {
                     }
                     return cb(err);
                 });
-            });//async.whilst
+            });
         });
         this.push(file);
 
     }, function (cb) {
         if (fileCount > 0) {
-            gutil.log('gulp-sftp:', gutil.colors.green(fileCount, fileCount === 1 ? 'file' : 'files', 'uploaded successfully'));
+            gutil.log('GULP-SFTP:', gutil.colors.green(fileCount, fileCount === 1 ? '文件' : '文件', '上传成功'));
         } else {
-            gutil.log('gulp-sftp:', gutil.colors.yellow('No files uploaded'));
+            gutil.log('GULP-SFTP:', gutil.colors.yellow('未发现需要上传的文件'));
         }
         finished = true;
         if (sftpCache)
