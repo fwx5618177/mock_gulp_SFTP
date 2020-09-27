@@ -173,6 +173,14 @@ Default: `false`
 
 用于删除文件夹（remotePath）远端对应的文件夹底下的所有文件，规避了历史文件的冗余，有一定的风险，请务确保路径的正确
 
+
+#### options.customCommand
+
+type `String`
+Default: `null`
+
+用于添加可执行自定义命令行，它操作的命令行一般都在 remotePath 目录下运行，当然，你也可以通过自定义命令行去控制执行路径，不过此风险相当大，慎用
+
 ## Authentication
 
 为了提高安全性，请将身份验证数据保存在名为`.ftppass`的 json 格式的文件中（或保存为 options.authFile 设置的任何值）。 **请确保将此文件添加到.gitignore** 。 通常，您不希望将身份验证信息存储在版本控制中。

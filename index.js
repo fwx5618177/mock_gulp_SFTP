@@ -118,7 +118,19 @@ module.exports = function (options) {
                     }).stderr.on('data', (data) => {
                         gutil.log('STDERR: ' + data);
                     });
-                    gutil.log('提示: 远端文件删除成功');
+                    gutil.colors.green('提示: 远端文件删除成功');
+                })
+            }
+
+            if (options.customCommand) {
+                c.exec(`${customCommand}`, (err, stream) => {
+                    if (err) throw err;
+                    stream.on('data', (data) => {
+                        gutil.log('STDOUT: ' + data);
+                    }).stderr.on('data', (data) => {
+                        gutil.log('STDERR: ' + data);
+                    });
+                    gutil.colors.green('提示: 自定义命令执行成功');
                 })
             }
 
