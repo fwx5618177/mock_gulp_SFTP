@@ -23,7 +23,7 @@ yarn add gulp-sftp-up5 -D
   }
 
 ```
-
+### 使用方式一（不安全）
 ```js
 // deploy.js
 
@@ -51,6 +51,55 @@ const sftpConfig = {
     user: "root", // 帐号
     pass: "1433223", // 密码
     port: 22, // 端口
+    removeCurrentFolderFiles: true,
+  },
+}
+
+// 采用管道流的方式将 outputDir 中的文件上传到远端
+gulp.src("./" + CONFIG.outputDir + "/**").pipe(sftp(sftpConfig[process.env.APP_ENV]))
+```
+
+
+### 使用方式二（需配置SFTP属性）
+* 为了提高安全性，请将配置信息保存在名为`.env.sftp`的 json 格式的文件中（或保存为 options.authFile 设置的任何值）。 **请确保将此文件添加到.gitignore** 。
+```
+// .env.sftp  请严格按照JSON格式
+{
+  "test": {
+    "user": "root",
+    "pass": "123456",
+    "host": "192.168.0.1",
+    "port": 22
+  },
+  "prod": {
+    "user": "root",
+    "pass": "123456",
+    "host": "192.168.0.",
+    "port": 22
+  }
+}
+```
+```js
+// deploy.js
+
+/**
+ * 部署之前请检查好要部署的路径
+ * 如有多个环境，自行拓展
+ */
+const gulp = require("gulp")
+const sftp = require("gulp-sftp-up5")
+const CONFIG = require("./vue.config") // 只是为了保证上传的文件夹一致
+
+const sftpConfig = {
+  // 此处的key对应着package.json中脚本的 APP_ENV
+  test: {
+    remotePath: "/service/web", // 部署到服务器的路径
+    SFTP: 'test', // 对应着.env.sftp的可以
+    removeCurrentFolderFiles: true, // 该属性可删除 remotePath 下的所有文件/文件夹
+  },
+  prod: {
+    remotePath: "/service/web", // 部署到服务器的路径
+    SFTP: 'prod',
     removeCurrentFolderFiles: true,
   },
 }
@@ -124,12 +173,12 @@ Default: `null`
 
 如果您希望直接通过 gulp 传递密钥，可以通过将其设置为 options.keyContents 来实现。
 
-#### options.auth
+#### options.SFTP
 
 type `String`
 Default: `null`
 
-用于从.ftppass 访问身份验证信息的标识符，请参见[Authentication](#authentication) 了解更多信息。
+用于从 .env.sftp 访问身份验证信息的标识符，可使用 authFile 自定义文件名称。
 
 #### options.authFile
 
@@ -181,49 +230,8 @@ Default: `null`
 
 用于添加可执行自定义命令行，它操作的命令行一般都在 remotePath 目录下运行，当然，你也可以通过自定义命令行去控制执行路径，不过此风险相当大，慎用
 
-## Authentication
 
-为了提高安全性，请将身份验证数据保存在名为`.ftppass`的 json 格式的文件中（或保存为 options.authFile 设置的任何值）。 **请确保将此文件添加到.gitignore** 。 通常，您不希望将身份验证信息存储在版本控制中。
-
-```js
-var gulp = require("gulp")
-var sftp = require("gulp-sftp")
-
-gulp.task("default", function () {
-  return gulp.src("src/*").pipe(
-    sftp({
-      host: "website.com",
-      auth: "keyMain",
-    })
-  )
-})
-```
-
-```json
-{
-  "keyMain": {
-    "user": "username1",
-    "pass": "password1"
-  },
-  "keyShort": "username1:password1",
-  "privateKey": {
-    "user": "username"
-  },
-  "privateKeyEncrypted": {
-    "user": "username",
-    "passphrase": "passphrase1"
-  },
-  "privateKeyCustom": {
-    "user": "username",
-    "passphrase": "passphrase1",
-    "keyLocation": "/full/path/to/key"
-  }
-}
-```
-
-## Work with [pem](https://github.com/andris9/pem)
-
-要使用 pem 创建私钥和证书来访问服务器：
+如要使用 pem 创建私钥和证书来访问服务器：
 
 ```js
 var pem = require("pem")

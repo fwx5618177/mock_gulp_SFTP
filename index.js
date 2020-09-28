@@ -14,7 +14,7 @@ const normalizePath = function (path) {
 module.exports = function (options) {
     options = { ...options };// credit sindresorhus
 
-    if (options.host === undefined) {
+    if (!options.SFTP && options.host === undefined) {
         throw new gutil.PluginError('GULP-SFTP', '`host` 必填.');
     }
 
@@ -22,16 +22,16 @@ module.exports = function (options) {
     var remotePath = options.remotePath || '/';
     var remotePlatform = options.remotePlatform || options.platform || 'unix';
 
-    options.authKey = options.authKey || options.auth;
-    var authFilePath = options.authFile || '.ftppass';
+    options.authKey = options.authKey || options.SFTP;
+    var authFilePath = options.authFile || '.env.sftp';
     var authFile = path.join('./', authFilePath);
     if (options.authKey && fs.existsSync(authFile)) {
         var auth = JSON.parse(fs.readFileSync(authFile, 'utf8'))[options.authKey];
         if (!auth)
-            this.emit('error', new gutil.PluginError('GULP-SFTP', '没有在.ftppass中找到 authkey'));
+            this.emit('error', new gutil.PluginError('GULP-SFTP', `没有在 ${authFilePath} 中找到 authkey`));
         if (typeof auth == "string" && auth.indexOf(":") != -1) {
             var authparts = auth.split(":");
-            auth = { user: authparts[0], pass: authparts[1] };
+            auth = { user: authparts[0], pass: authparts[1], host: authparts[2], port: authparts[3] };
         }
         for (var attr in auth) { options[attr] = auth[attr]; }
     }
@@ -115,10 +115,10 @@ module.exports = function (options) {
                     if (err) throw err;
                     stream.on('data', (data) => {
                         gutil.log('STDOUT: ' + data);
-                    }).stderr.on('data', (data) => {
-                        gutil.log('STDERR: ' + data);
-                    });
-                    gutil.colors.green('提示: 远端文件删除成功');
+                    }).on('close',()=>{
+                        gutil.log('提示: 远端文件删除成功');
+                    })
+
                 })
             }
 
