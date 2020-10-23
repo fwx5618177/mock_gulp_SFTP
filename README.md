@@ -32,8 +32,9 @@ yarn add gulp-sftp-up5 -D
  * 如有多个环境，自行拓展
  */
 const gulp = require("gulp")
+const path = require('path')
 const sftp = require("gulp-sftp-up5")
-const CONFIG = require("./vue.config") // 只是为了保证上传的文件夹一致
+// const CONFIG = require("./vue.config") // 只是为了保证上传的文件夹一致
 
 const sftpConfig = {
   // 此处的key对应着package.json中脚本的 APP_ENV
@@ -56,7 +57,11 @@ const sftpConfig = {
 }
 
 // 采用管道流的方式将 outputDir 中的文件上传到远端
-gulp.src("./" + CONFIG.outputDir + "/**").pipe(sftp(sftpConfig[process.env.APP_ENV]))
+// gulp.src("./" + CONFIG.outputDir + "/**").pipe(sftp(sftpConfig[process.env.APP_ENV]))
+
+
+gulp.src(path.resolve(__dirname, './dist.zip')).pipe(sftp(sftpConfig))
+
 ```
 
 
@@ -87,8 +92,9 @@ gulp.src("./" + CONFIG.outputDir + "/**").pipe(sftp(sftpConfig[process.env.APP_E
  * 如有多个环境，自行拓展
  */
 const gulp = require("gulp")
+const path = require('path')
 const sftp = require("gulp-sftp-up5")
-const CONFIG = require("./vue.config") // 只是为了保证上传的文件夹一致
+// const CONFIG = require("./vue.config") // 只是为了保证上传的文件夹一致
 
 const sftpConfig = {
   // 此处的key对应着package.json中脚本的 APP_ENV
@@ -105,10 +111,15 @@ const sftpConfig = {
 }
 
 // 采用管道流的方式将 outputDir 中的文件上传到远端
-gulp.src("./" + CONFIG.outputDir + "/**").pipe(sftp(sftpConfig[process.env.APP_ENV]))
+// gulp.src("./" + CONFIG.outputDir + "/**").pipe(sftp(sftpConfig[process.env.APP_ENV]))
+
+
+gulp.src(path.resolve(__dirname, './dist.zip')).pipe(sftp(sftpConfig)) // 0.0.10 以上支持，0.0.10 以下用上方的方式
 ```
 
 ## 配置参数
+
+> 现改成压缩上传远端自动解压了，会在项目根目录下生成  dist.zip 文件，如果上传成功会将远端的dist.zip删除(0.0.10以上支持)
 
 ### sftp(options)
 

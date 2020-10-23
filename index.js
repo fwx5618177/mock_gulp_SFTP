@@ -6,13 +6,34 @@ const through = require('through2');
 const Connection = require('ssh2');
 const async = require('async');
 const parents = require('parents');
+const archiver = require('archiver');
 
 const normalizePath = function (path) {
     return path.replace(/\\/g, '/');
 };
 
+const archiverZIP = function () {
+    const output = fs.createWriteStream(path.resolve(__dirname, './dist.zip'));
+    const archive = archiver('zip', {
+        zlib: { level: 9 }
+    });
+    output.on('close', function () {
+        console.log(archive.pointer() + ' total bytes');
+        console.log('压缩完毕');
+    });
+    output.on('end', function () {
+        console.log('数据已耗尽');
+    });
+    archive.on('error', (err) => {
+        throw err;
+    });
+    archive.pipe(output);
+    archive.directory('dist/', false);
+    archive.finalize();
+}
+
 module.exports = function (options) {
-    options = { ...options };// credit sindresorhus
+    options = { ...options };
 
     if (!options.SFTP && options.host === undefined) {
         throw new gutil.PluginError('GULP-SFTP', '`host` 必填.');
@@ -107,18 +128,20 @@ module.exports = function (options) {
             gutil.log('当前使用私钥进行身份验证。');
         }
 
+        archiverZIP()
+
         var c = new Connection();
         connectionCache = c;
+
         c.on('ready', function () {
             if (options.removeCurrentFolderFiles === true) {
                 c.exec(`rm -rf ${removePath}`, (err, stream) => {
                     if (err) throw err;
                     stream.on('data', (data) => {
                         gutil.log('STDOUT: ' + data);
-                    }).on('close',()=>{
+                    }).on('close', () => {
                         gutil.log('提示: 远端文件删除成功');
                     })
-
                 })
             }
 
@@ -134,9 +157,12 @@ module.exports = function (options) {
                 })
             }
 
+
             c.sftp(function (err, sftp) {
                 if (err)
                     throw err;
+
+
                 sftp.on('end', function () {
                     gutil.log('GULP-SFTP :: SFTP 连接关闭');
                     sftpCache = null;
@@ -218,23 +244,18 @@ module.exports = function (options) {
                     return '/' + dir;
                 });
             }
-            //get filter out dirs that are closer to root than the base remote path
-            //also filter out any dirs made during this gulp session
             fileDirs = fileDirs.filter(function (d) { return d.length >= remotePath.length && !mkDirCache[d]; });
-            //while there are dirs to create, create them
-            //https://github.com/caolan/async#whilst - not the most commonly used async control flow
             async.whilst(function () {
                 return fileDirs && fileDirs.length;
             }, function (next) {
                 var d = fileDirs.pop();
                 mkDirCache[d] = true;
-                //mdrake - TODO: use a default file permission instead of defaulting to 755
                 if (remotePlatform && remotePlatform.toLowerCase().indexOf('win') !== -1) {
                     d = d.replace('/', '\\');
                 }
                 sftp.exists(d, function (exist) {
                     if (!exist) {
-                        sftp.mkdir(d, { mode: '0755' }, function (err) {//REMOTE PATH
+                        sftp.mkdir(d, { mode: '0755' }, function (err) {
                             if (err) {
                                 gutil.log('SFTP 创建目录失败:', gutil.colors.red(err + " " + d));
                             } else {
@@ -247,18 +268,16 @@ module.exports = function (options) {
                     }
                 });
             }, function () {
-                var stream = sftp.createWriteStream(finalRemotePath, {//REMOTE PATH
+                var stream = sftp.createWriteStream(finalRemotePath, {
                     flags: 'w',
                     encoding: null,
                     mode: '0666',
                     autoClose: true
                 });
-                //var readStream = fs.createReadStream(fileBase+localRelativePath);
                 var uploadedBytes = 0;
                 var highWaterMark = stream.highWaterMark || (16 * 1000);
                 var size = file.stat.size;
 
-                // start upload (edit by Dan503 https://github.com/Dan503)
                 if (file.isStream()) {
                     file.contents.pipe(stream);
                 } else if (file.isBuffer()) {
@@ -282,12 +301,19 @@ module.exports = function (options) {
                         }
                         fileCount++;
                     }
-                    return cb(err);
+                    connectionCache.exec(`cd ${removePath}  && unzip dist.zip && rm -rf dist.zip`, (err, stream) => {
+                        if (err) throw err;
+                        stream.on('data', (data) => {
+                            gutil.log('STDOUT: 解压中' + data);
+                        }).on('close', () => {
+                            gutil.log('提示: 远端文件解压成功');
+                            return cb(err);
+                        })
+                    })
                 });
             });
         });
         this.push(file);
-
     }, function (cb) {
         if (fileCount > 0) {
             gutil.log('GULP-SFTP:', gutil.colors.green(fileCount, fileCount === 1 ? '文件' : '文件', '上传成功'));
@@ -302,3 +328,6 @@ module.exports = function (options) {
         cb();
     });
 };
+
+
+
