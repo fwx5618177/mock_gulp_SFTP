@@ -1,0 +1,25 @@
+{
+    "archiver": {
+        "close": {
+            "size": "总大小：",
+            "remaind": "压缩完毕"
+        },
+        "end": {
+            "remaind": "数据已经提取完成"
+        },
+        "error": {
+            "remaind": "压缩出现问题:"
+        },
+        "warning": {
+            "remaind": "警告:"
+        },
+        "file": {
+            "search": "文件查询中...",
+            "notExist": "文件/目录不存在, 请检查\n",
+            "exist": "存在",
+            "transform": "转换",
+            "rm": "已删除上个版本的压缩文件",
+            "add": "请重新生成新的压缩文件"
+        }
+    }
+}
