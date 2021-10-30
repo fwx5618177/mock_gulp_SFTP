@@ -17,7 +17,7 @@ const path = require('path');
 const archiver = require('archiver');
 const chalk = require('chalk');
 
-class Archiver {
+class ArchiverFile {
     outputArchiverName;
     archiverType;
     directoryName;
@@ -169,5 +169,6 @@ class Archiver {
     }
 }
 
-const test = new Archiver('../dist/test.zip', 'zip', '../src', 9);
-test.archiverLib();
+module.exports = {
+    ArchiverFile
+}
