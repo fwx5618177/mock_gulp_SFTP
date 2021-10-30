@@ -1,5 +1,7 @@
+#!/bin/node
 /**
- * 压缩数据
+ * Node-实现数据、文件的压缩
+ *  - 压缩格式: zip
  * @param {string} outputArchiverName 最终压缩输出文件
  * @param {string} archiverType 压缩文件的类型
  * @param {string} directoryName 源文件的所在目录
