@@ -1,4 +1,4 @@
-#!/bin/node
+#!/usr/local/bin/node
 /**
  * Node-实现数据、文件的压缩
  *  - 压缩格式: zip
