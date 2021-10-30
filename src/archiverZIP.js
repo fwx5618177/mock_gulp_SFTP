@@ -113,7 +113,7 @@ class Archiver {
         const destDirectory = path.join(__dirname, this.directoryName);
         fs.access(destDirectory, fs.constants.R_OK | fs.constants.W_OK, err => {
             console.log(text.file.search);
-            if (err) {
+            if (!!err) {
                 console.log(chalk.bold.red(text.file.notExist));
                 throw err;
             }else {
@@ -121,8 +121,25 @@ class Archiver {
             }
         })
 
+        // 判断输出文件是否存在，存在则删除
+        try {
+            fs.access(outputFile, fs.constants.R_OK | fs.constants.W_OK, err => {
+                if (!!err) throw err;
+            });
+        } catch (err) {
+            console.log(err);
+            const fileStatus = fs.existsSync(outputFile);
+
+            if(!fileStatus) {
+                fs.mkdirSync(path.dirname(outputFile));
+            }
+        }finally {
+            if(fs.existsSync(outputFile)) fs.rmSync(outputFile);
+            console.log(chalk.bold.blue(text.file.rm), chalk.bold.red(text.file.add));
+        }
+
         outputStream.on('close', () => {
-            console.log(chalk.bold.yellow(this.directoryName, text.file.transform, this.outputArchiverName))
+            console.log(chalk.bold.yellow(path.basename(this.directoryName), text.file.transform, this.outputArchiverName))
             console.log(chalk.bold.magenta(text.close.size), archive.pointer());
             console.log(chalk.bold.green(text.close.remaind));
         })
@@ -145,26 +162,12 @@ class Archiver {
             }
         })
 
-        // 判断输出文件是否存在，存在则删除
-        fs.access(outputFile, fs.constants.R_OK | fs.constants.W_OK, err => {
-            if (!err) {
-                const a = this.rmFiles(outputFile)
-                a.next()
-                console.log(chalk.bold.blue(text.file.rm), chalk.bold.red(text.file.add));
-            }
+        archive.pipe(outputStream);
+        archive.directory(path.resolve(__dirname, this.directoryName), false);
 
-            archive.pipe(outputStream);
-            archive.directory(path.resolve(__dirname, this.directoryName), false);
-    
-            archive.finalize();
-        })
-
-    }
-
-    * rmFiles(file) {
-        yield fs.rmSync(file);
+        archive.finalize();
     }
 }
 
-const test = new Archiver('test.zip', 'zip', '../src', 9);
+const test = new Archiver('../dist/test.zip', 'zip', '../src', 9);
 test.archiverLib();
