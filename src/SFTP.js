@@ -9,8 +9,16 @@ const path = require('path');
 const fs = require('fs');
 
 class SFTP {
-    options;
     fileCount = 0;
+
+    // 常见的配置项
+    SFTP;
+    remotePath;
+    remotePlatform;
+    authKey;
+    authFilePath;
+    authFile;
+
     /**
      * @func constructor 读取配置文件
      */
